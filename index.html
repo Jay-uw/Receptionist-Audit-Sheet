@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Receptionist Audit — Solano Immigration Law Firm</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --red:#9B1C1C;--red2:#C0392B;--red3:#e74c3c;
+  --red-pale:#fdf2f2;--red-border:rgba(155,28,28,0.16);
+  --white:#ffffff;--gray-light:#f2f2f2;--gray:#888;
+  --text:#1a1a1a;--muted:#666;--shadow:rgba(155,28,28,0.13);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--text);overflow-x:hidden;}
+
+/* CANVAS */
+#bgc{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+
+/* HEADER */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:300;
+  background:rgba(255,255,255,0.96);border-bottom:1px solid var(--red-border);
+  backdrop-filter:blur(20px);display:flex;align-items:center;
+  justify-content:space-between;padding:12px 48px;
+  box-shadow:0 2px 20px rgba(155,28,28,0.07);
+}
+.logo-area{display:flex;align-items:center;gap:14px;}
+.logo-area img{height:44px;object-fit:contain;}
+.logo-fallback{display:none;width:44px;height:44px;border:2px solid var(--red);border-radius:5px;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--red);}
+.logo-txt{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3;}
+.logo-txt span{display:block;font-size:9.5px;font-weight:400;color:var(--gray);letter-spacing:.2em;text-transform:uppercase;}
+.int-badge{font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--red);border:1.5px solid var(--red);border-radius:3px;padding:4px 12px;}
+
+/* HERO */
+.hero{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:110px 40px 60px;text-align:center;}
+.eyebrow{font-size:10.5px;letter-spacing:.32em;text-transform:uppercase;color:var(--red);margin-bottom:22px;opacity:0;animation:fu .7s .1s ease forwards;}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(46px,7.5vw,90px);font-weight:700;line-height:1.02;color:var(--text);opacity:0;animation:fu .8s .25s ease forwards;}
+.hero h1 em{font-style:italic;color:var(--red);}
+.hero-desc{margin-top:22px;font-size:16px;font-weight:300;color:var(--muted);max-width:460px;line-height:1.75;opacity:0;animation:fu .8s .45s ease forwards;}
+.hero-rule{width:56px;height:2.5px;background:var(--red);margin:32px auto 0;opacity:0;animation:fu .8s .6s ease forwards;}
+@keyframes fu{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+
+.stats{display:flex;gap:52px;margin-top:56px;justify-content:center;flex-wrap:wrap;opacity:0;animation:fu .8s .78s ease forwards;}
+.stat{text-align:center;}
+.stat-n{font-family:'Playfair Display',serif;font-size:46px;font-weight:700;color:var(--red);line-height:1;}
+.stat-l{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--gray);margin-top:6px;}
+
+.scue{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;opacity:0;animation:fu .8s 1.3s ease forwards;}
+.scue span{font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--gray);}
+.sarr{width:22px;height:22px;border-right:2px solid var(--red);border-bottom:2px solid var(--red);transform:rotate(45deg);animation:bv 1.5s infinite;}
+@keyframes bv{0%,100%{transform:rotate(45deg) translateY(0);}50%{transform:rotate(45deg) translateY(6px);}}
+
+/* DIVIDER */
+.divider{
+  position:relative;z-index:2;background:var(--red);padding:30px 48px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.div-t{font-family:'Playfair Display',serif;font-size:22px;font-style:italic;color:white;}
+.div-s{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-top:4px;}
+.div-btn{
+  cursor:pointer;transition:transform .25s,background .2s;
+  border-radius:8px;padding:4px;
+  background:rgba(255,255,255,0.12);
+  border:1.5px solid rgba(255,255,255,0.3);
+}
+.div-btn:hover{background:rgba(255,255,255,0.22);transform:scale(1.1);}
+.div-btn svg{display:block;transition:transform .4s cubic-bezier(.34,1.56,.64,1);}
+.div-btn.open svg{transform:rotate(45deg);}
+
+/* FORM SECTION — hidden by default, JS reveals it */
+.form-sec{
+  position:relative;z-index:2;max-width:900px;margin:0 auto;padding:0 48px;
+  /* collapsed state */
+  max-height:0;overflow:hidden;
+  transition:max-height .6s cubic-bezier(.22,1,.36,1), padding .6s cubic-bezier(.22,1,.36,1);
+}
+.form-sec.open{
+  max-height:600px;
+  padding:80px 48px;
+}
+
+/* Audit Details card — 3D entrance controlled by JS */
+.icard{
+  background:white;border:1.5px solid var(--red-border);border-radius:16px;
+  padding:42px 46px;box-shadow:0 10px 50px var(--shadow);
+  will-change:transform,opacity;
+  opacity:0;
+  transform:perspective(1100px) rotateX(28deg) translateY(70px) scale(0.92);
+  transition:opacity .55s cubic-bezier(.22,1,.36,1), transform .65s cubic-bezier(.22,1,.36,1);
+}
+.icard.revealed{
+  opacity:1;
+  transform:perspective(1100px) rotateX(0deg) translateY(0) scale(1);
+}
+
+.card-title{font-family:'Playfair Display',serif;font-size:28px;color:var(--text);margin-bottom:8px;}
+.card-title em{font-style:italic;color:var(--red);}
+.card-sub{font-size:13px;color:var(--muted);margin-bottom:36px;}
+.frow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;}
+@media(max-width:640px){.frow{grid-template-columns:1fr;}}
+.fg label{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-weight:500;}
+.fg input,.fg select{width:100%;background:var(--gray-light);border:1.5px solid transparent;border-radius:8px;padding:12px 16px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s,background .2s;appearance:none;}
+.fg select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239B1C1C' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;}
+.fg select option{background:white;color:var(--text);}
+.fg input:focus,.fg select:focus{border-color:var(--red);background:white;box-shadow:0 0 0 4px rgba(155,28,28,.1);}
+.custom-inp{display:none;margin-top:10px;}
+.custom-inp.show{display:block;}
+.go-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:fit-content;min-width:280px;margin:32px auto 0;padding:17px 36px;background:var(--red);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s,transform .2s,box-shadow .2s;box-shadow:0 6px 24px rgba(155,28,28,.32);}
+.go-btn:hover{background:var(--red2);transform:translateY(-2px);box-shadow:0 10px 36px rgba(155,28,28,.42);}
+.go-btn .arr{transition:transform .25s;}
+.go-btn:hover .arr{transform:translateX(5px);}
+
+/* PROGRESS — sections reviewed */
+#progBar{
+  position:sticky;top:68px;z-index:200;
+  background:rgba(255,255,255,.97);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--red-border);
+  padding:10px 48px;display:none;align-items:center;gap:16px;
+}
+#progBar.show{display:flex;}
+.pl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);white-space:nowrap;}
+.pb-bg{flex:1;height:4px;background:var(--gray-light);border-radius:2px;overflow:hidden;}
+.pb-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--red3));width:0%;border-radius:2px;transition:width .4s;box-shadow:0 0 8px rgba(155,28,28,.4);}
+.pc{font-size:12px;font-weight:600;color:var(--red);white-space:nowrap;min-width:110px;text-align:right;}
+
+/* CHECKLIST */
+#cl-area{display:none;position:relative;z-index:2;max-width:900px;margin:0 auto;padding:0 48px 60px;}
+#cl-area.show{display:block;}
+
+.a-banner{background:var(--red-pale);border:1.5px solid var(--red-border);border-radius:12px;padding:18px 26px;margin-bottom:32px;display:flex;align-items:center;gap:14px;}
+.a-dot{width:10px;height:10px;border-radius:50%;background:var(--red);flex-shrink:0;animation:pu 2s infinite;}
+@keyframes pu{0%,100%{box-shadow:0 0 0 0 rgba(155,28,28,.4);}50%{box-shadow:0 0 0 8px rgba(155,28,28,0);}}
+.a-txt{font-size:13.5px;color:var(--text);}
+.a-txt strong{color:var(--red);}
+.new-audit-btn{
+  margin-left:auto;flex-shrink:0;
+  display:flex;align-items:center;gap:8px;
+  padding:9px 18px;background:var(--red);color:white;border:none;border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;cursor:pointer;
+  transition:background .2s,transform .15s,box-shadow .2s;
+  box-shadow:0 4px 16px rgba(155,28,28,.3);
+  white-space:nowrap;
+}
+.new-audit-btn:hover{background:var(--red2);transform:translateY(-1px);box-shadow:0 6px 22px rgba(155,28,28,.42);}
+.new-audit-btn:active{transform:translateY(0);}
+
+/* Section cards — 3D scroll-in */
+.sc{
+  background:white;border:1.5px solid var(--red-border);border-radius:14px;
+  margin-bottom:18px;overflow:hidden;box-shadow:0 4px 20px rgba(155,28,28,.06);
+  opacity:0;transform:perspective(900px) rotateY(28deg) translateX(90px) scale(0.97);
+  transition:opacity .5s ease,transform .5s ease,box-shadow .25s;
+  will-change:transform,opacity;
+}
+.sc:nth-child(even){transform:perspective(900px) rotateY(-28deg) translateX(-90px) scale(0.97);}
+.sc.revealed{opacity:1 !important;transform:perspective(900px) rotateY(0) translateX(0) scale(1) !important;}
+.sc.reviewed .sh{background:rgba(155,28,28,0.04);}
+.sc:hover{box-shadow:0 8px 36px rgba(155,28,28,.14);}
+
+.sh{display:flex;align-items:center;gap:14px;padding:18px 24px;cursor:pointer;user-select:none;transition:background .15s;border-bottom:1px solid transparent;}
+.sh:hover{background:var(--red-pale);}
+.sc:not(.collapsed) .sh{border-color:var(--red-border);}
+.sc.collapsed .sh{border-color:transparent;}
+.sc.collapsed .sb{display:none;}
+.snum{width:30px;height:30px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;flex-shrink:0;transition:background .2s;}
+.sc.reviewed .snum{background:#2ecc71;}
+.stw{flex:1;}
+.stitle{font-size:12.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text);}
+.spm{font-size:11px;color:var(--muted);margin-top:2px;}
+.schev{color:var(--gray);font-size:11px;transition:transform .25s;}
+.sc.collapsed .schev{transform:rotate(-90deg);}
+.sb{padding:24px 28px;}
+
+.sublbl{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:600;margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--red-border);}
+.sublbl:not(:first-child){margin-top:22px;}
+
+.ci{display:flex;align-items:flex-start;gap:12px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background .15s;}
+.ci:hover{background:var(--red-pale);}
+.ci input[type=checkbox]{appearance:none;width:18px;height:18px;flex-shrink:0;margin-top:2px;border:1.5px solid rgba(155,28,28,.3);border-radius:4px;cursor:pointer;position:relative;transition:background .15s,border-color .15s;}
+.ci input:checked{background:var(--red);border-color:var(--red);}
+.ci input:checked::after{content:'';position:absolute;left:4px;top:1px;width:6px;height:10px;border:2px solid white;border-top:none;border-left:none;transform:rotate(45deg);}
+.clbl{font-size:14px;color:var(--text);line-height:1.45;transition:color .2s;}
+.ci.done .clbl{color:#bbb;text-decoration:line-through;text-decoration-color:rgba(155,28,28,.3);}
+.nw{margin-top:20px;}
+.nw label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);display:block;margin-bottom:7px;}
+.nw textarea{width:100%;background:var(--gray-light);border:1.5px solid transparent;border-radius:8px;padding:12px 14px;min-height:68px;resize:vertical;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;}
+.nw textarea:focus{border-color:var(--red);background:white;box-shadow:0 0 0 4px rgba(155,28,28,.08);}
+
+/* ═══════════════════════════
+   DOWNLOAD BOX
+═══════════════════════════ */
+#dl-area{display:none;position:relative;z-index:2;max-width:900px;margin:0 auto;padding:0 48px 80px;}
+.dl-header{text-align:center;margin-bottom:40px;}
+.dl-header h2{font-family:'Playfair Display',serif;font-size:34px;font-weight:700;color:var(--text);}
+.dl-header h2 em{font-style:italic;color:var(--red);}
+.dl-header p{font-size:13px;color:var(--muted);margin-top:10px;}
+.dl-rule{width:48px;height:2px;background:var(--red);margin:16px auto 0;}
+
+.dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.dl-grid .dl-card:last-child:nth-child(odd){grid-column:1/-1;}
+@media(max-width:600px){.dl-grid{grid-template-columns:1fr;}}
+
+/* Download card — 3D interactive */
+.dl-card{
+  position:relative;background:white;border:1.5px solid var(--red-border);
+  border-radius:14px;padding:28px 28px 24px;cursor:pointer;
+  box-shadow:0 4px 20px rgba(155,28,28,.07);
+  transform-style:preserve-3d;
+  transition:box-shadow .25s,border-color .25s,opacity .5s ease,transform .5s cubic-bezier(.22,1,.36,1);
+  overflow:hidden;
+}
+.dl-card.dl-hidden{
+  opacity:0;
+  transform:perspective(800px) rotateX(18deg) translateY(30px) scale(0.95);
+}
+.dl-card.dl-hidden.dl-reveal{
+  opacity:1;
+  transform:perspective(800px) rotateX(0) rotateY(0) translateY(0) scale(1);
+}
+.dl-card::before{
+  content:'';position:absolute;inset:0;border-radius:13px;
+  background:linear-gradient(135deg,rgba(155,28,28,.04),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.dl-card:hover::before{opacity:1;}
+.dl-card:hover{box-shadow:0 14px 48px rgba(155,28,28,.2);border-color:rgba(155,28,28,.4);}
+.dl-card:active{transform:perspective(800px) scale(0.98) !important;}
+
+.dl-card-inner{display:flex;align-items:flex-start;gap:18px;position:relative;z-index:1;}
+.dl-icon{
+  width:48px;height:48px;border-radius:10px;background:var(--red-pale);
+  border:1.5px solid var(--red-border);display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:background .2s,transform .2s;
+}
+.dl-card:hover .dl-icon{background:var(--red);transform:rotate(-4deg) scale(1.08);}
+.dl-icon svg{transition:stroke .2s;}
+.dl-card:hover .dl-icon svg{stroke:white;}
+.dl-info{flex:1;}
+.dl-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;transition:color .2s;}
+.dl-card:hover .dl-name{color:var(--red);}
+.dl-desc{font-size:12.5px;font-weight:300;color:var(--muted);line-height:1.55;}
+.dl-tag{display:inline-block;margin-top:10px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);border:1px solid var(--red-border);border-radius:20px;padding:3px 10px;transition:background .2s,color .2s;}
+.dl-card:hover .dl-tag{background:var(--red);color:white;}
+
+/* Ripple on click */
+.ripple{position:absolute;border-radius:50%;background:rgba(155,28,28,.18);transform:scale(0);animation:rpl .6s linear;pointer-events:none;}
+@keyframes rpl{to{transform:scale(4);opacity:0;}}
+
+/* Footer */
+footer{position:relative;z-index:2;text-align:center;padding:28px 40px;border-top:1px solid var(--red-border);font-size:12px;color:var(--gray);letter-spacing:.05em;background:white;}
+footer strong{color:var(--red);}
+</style>
+</head>
+<body>
+
+<canvas id="bgc"></canvas>
+
+<header>
+  <div class="logo-area">
+    <img src="LogoslfPNG.png" alt="Solano Immigration Law Firm" onerror="this.style.display='none';document.getElementById('lf').style.display='flex'"/>
+    <div class="logo-fallback" id="lf">SLF</div>
+  </div>
+  <div class="int-badge">Internal Use Only</div>
+</header>
+
+<!-- PROGRESS — sections reviewed -->
+<div id="progBar">
+  <span class="pl">Sections Reviewed</span>
+  <div class="pb-bg"><div class="pb-fill" id="pbf"></div></div>
+  <span class="pc" id="pct">0 of 13 sections</span>
+</div>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <p class="eyebrow">Solano Immigration Law Firm &mdash; Internal Tool</p>
+  <h1>Receptionist<br/><em>Audit Sheet</em></h1>
+  <p class="hero-desc">A structured quality-assurance tool to review receptionist performance across calls, documentation, scheduling, and client communication.</p>
+  <div class="hero-rule"></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-n">13</div><div class="stat-l">Audit Sections</div></div>
+    <div class="stat"><div class="stat-n" id="sti">102</div><div class="stat-l">Checkpoints</div></div>
+    <div class="stat"><div class="stat-n">5</div><div class="stat-l">Receptionists</div></div>
+  </div>
+  <div class="scue" onclick="document.querySelector('.divider').scrollIntoView({behavior:'smooth'})">
+    <span>Start Audit</span>
+    <div class="sarr"></div>
+  </div>
+</section>
+
+<!-- DIVIDER — clicking + reveals the form card -->
+<div class="divider" id="divider">
+  <div>
+    <div class="div-t">Begin Your Audit</div>
+    <div class="div-s">Click the + to fill in your audit details</div>
+  </div>
+  <div class="div-btn" id="divBtn" onclick="toggleFormCard()">
+    <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
+      <rect x="1" y="1" width="38" height="38" rx="7" stroke="rgba(255,255,255,.5)" stroke-width="1.5"/>
+      <path d="M12 20h16M20 12v16" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+  </div>
+</div>
+
+<!-- FORM -->
+<div id="fs" class="form-sec">
+  <div class="icard" id="ic">
+    <div class="card-title">Audit <em>Details</em></div>
+    <p class="card-sub">Select the date, receptionist being audited, and the auditor conducting the review.</p>
+    <div class="frow">
+      <div class="fg">
+        <label>Date</label>
+        <input type="date" id="aDate"/>
+      </div>
+      <div class="fg">
+        <label>Receptionist</label>
+        <select id="recSel" onchange="onRecChange()">
+          <option value="">— Select Receptionist —</option>
+          <option>Diana</option><option>David</option><option>Andrea</option>
+          <option>Karime</option><option>Adela</option>
+          <option value="__c">Enter receptionist name…</option>
+        </select>
+        <div class="custom-inp" id="recCW"><input type="text" id="recCust" placeholder="Type receptionist name…"/></div>
+      </div>
+      <div class="fg">
+        <label>Auditor</label>
+        <select id="audSel" onchange="onAudChange()">
+          <option value="">— Select Auditor —</option>
+          <option>Lizbet Flores</option>
+          <option value="__c">Add another auditor…</option>
+        </select>
+        <div class="custom-inp" id="audCW"><input type="text" id="audCust" placeholder="Type auditor name…"/></div>
+      </div>
+    </div>
+    <button class="go-btn" id="goBtn" onclick="startAudit()">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3 7-7M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Start Audit Checklist
+      <svg class="arr" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- CHECKLIST -->
+<div id="cl-area">
+  <div class="a-banner">
+    <div class="a-dot"></div>
+    <div class="a-txt">Auditing: <strong id="bn">—</strong> &nbsp;·&nbsp; Date: <strong id="bd">—</strong> &nbsp;·&nbsp; Auditor: <strong id="ba">—</strong></div>
+    <button class="new-audit-btn" onclick="resetAudit()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      New Audit
+    </button>
+  </div>
+  <div id="sc-cont"></div>
+</div>
+
+<!-- DOWNLOAD BOX -->
+<div id="dl-area">
+  <div class="dl-header">
+    <h2>Export <em>Your Report</em></h2>
+    <p>Choose a format below. Each option serves a different reporting purpose.</p>
+    <div class="dl-rule"></div>
+  </div>
+  <div class="dl-grid" id="dlGrid">
+
+    <!-- TXT -->
+    <div class="dl-card" id="dlTxt" onclick="downloadTXT(this)">
+      <div class="dl-card-inner">
+        <div class="dl-icon">
+          <svg width="22" height="22" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div class="dl-info">
+          <div class="dl-name">Plain Text (.txt)</div>
+          <div class="dl-desc">Raw text list of all checked and unchecked items with your notes. Ideal for pasting into emails, Teams messages, or any internal chat.</div>
+          <span class="dl-tag">Simplest · Copy &amp; Paste friendly</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF formatted -->
+    <div class="dl-card" id="dlPdfF" onclick="downloadPDFFormatted(this)">
+      <div class="dl-card-inner">
+        <div class="dl-icon">
+          <svg width="22" height="22" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><rect x="8" y="13" width="8" height="5" rx="1"/></svg>
+        </div>
+        <div class="dl-info">
+          <div class="dl-name">PDF — Formatted (.pdf)</div>
+          <div class="dl-desc">Branded PDF with Solano Law firm colors, section headers, checkboxes and notes. Ready to attach to performance reports or HR files.</div>
+          <span class="dl-tag">Professional · Print-ready</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF plain -->
+    <div class="dl-card" id="dlPdfP" onclick="downloadPDFPlain(this)">
+      <div class="dl-card-inner">
+        <div class="dl-icon">
+          <svg width="22" height="22" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+        </div>
+        <div class="dl-info">
+          <div class="dl-name">PDF — Plain (.pdf)</div>
+          <div class="dl-desc">Minimal PDF with just the audit data and no styling. Best for importing into case management systems or third-party HR software.</div>
+          <span class="dl-tag">Minimal · System-import friendly</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Excel formatted -->
+    <div class="dl-card" id="dlXlsF" onclick="downloadExcelFormatted(this)">
+      <div class="dl-card-inner">
+        <div class="dl-icon">
+          <svg width="22" height="22" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+        </div>
+        <div class="dl-info">
+          <div class="dl-name">Excel — Formatted (.xlsx)</div>
+          <div class="dl-desc">Spreadsheet with color-coded sections, pass/fail indicators, and structured columns. Great for tracking trends across multiple audit dates.</div>
+          <span class="dl-tag">Analytics · Trend tracking</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Excel plain -->
+    <div class="dl-card" id="dlXlsP" onclick="downloadExcelPlain(this)">
+      <div class="dl-card-inner">
+        <div class="dl-icon">
+          <svg width="22" height="22" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>
+        </div>
+        <div class="dl-info">
+          <div class="dl-name">Excel — Plain (.xlsx)</div>
+          <div class="dl-desc">Raw data spreadsheet with no formatting. Perfect for feeding into Power BI, Google Sheets, or any custom reporting dashboard.</div>
+          <span class="dl-tag">Raw data · Dashboard-ready</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>Created by <strong>Jay Paulino</strong> &mdash; IT Systems &amp; Support Specialist &nbsp;|&nbsp; Solano Immigration Law Firm</footer>
+
+<script>
+/* ══════════════════════════════════════════════
+   CANVAS — bold themed icons, dramatic scroll
+══════════════════════════════════════════════ */
+(function(){
+  try{
+    const cv = document.getElementById('bgc');
+    const ctx = cv.getContext('2d');
+    let W, H, scrollY = 0;
+
+    function resize(){ W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    window.addEventListener('scroll', function(){ scrollY = window.scrollY; },{passive:true});
+
+    /* ── ICON DRAW FUNCTIONS (origin = center) ── */
+    function drawClipboard(c,s){
+      c.lineWidth=3; c.lineCap='round'; c.lineJoin='round';
+      c.beginPath(); c.roundRect(-s*.55,-s*.28,s*1.1,s*1.32,s*.1); c.stroke();
+      c.beginPath(); c.roundRect(-s*.22,-s*.44,s*.44,s*.24,s*.08); c.stroke();
+      c.lineWidth=2.4;
+      [-0.02,0.22,0.46,0.70].forEach(function(fy){
+        c.beginPath(); c.moveTo(-s*.38,s*fy); c.lineTo(s*.38,s*fy); c.stroke();
+      });
+      c.lineWidth=2.4; c.beginPath(); c.roundRect(-s*.38,-s*.12,s*.14,s*.14,s*.03); c.stroke();
+      c.beginPath(); c.moveTo(-s*.36,-s*.065); c.lineTo(-s*.30,-s*.01); c.lineTo(-s*.26,-s*.10); c.stroke();
+    }
+    function drawPencil(c,s){
+      c.lineWidth=3; c.lineCap='round'; c.lineJoin='round';
+      c.beginPath();
+      c.moveTo(-s*.12,-s); c.lineTo(s*.12,-s);
+      c.lineTo(s*.12,s*.65); c.lineTo(0,s); c.lineTo(-s*.12,s*.65); c.closePath(); c.stroke();
+      c.beginPath(); c.moveTo(-s*.12,s*.5); c.lineTo(s*.12,s*.5); c.stroke();
+      c.beginPath(); c.moveTo(-s*.12,s*.65); c.lineTo(s*.12,s*.65); c.stroke();
+      c.beginPath(); c.moveTo(0,-s*.85); c.lineTo(0,s*.5); c.stroke();
+    }
+    function drawEraser(c,s){
+      c.lineWidth=3; c.lineCap='round'; c.lineJoin='round';
+      c.beginPath(); c.roundRect(-s*.62,-s*.32,s*1.24,s*.64,s*.12); c.stroke();
+      c.beginPath(); c.moveTo(s*.08,-s*.32); c.lineTo(s*.08,s*.32); c.stroke();
+      c.lineWidth=2.2;
+      c.beginPath(); c.moveTo(-s*.45,-s*.1); c.lineTo(-s*.12,-s*.1); c.stroke();
+      c.beginPath(); c.moveTo(-s*.45,s*.1); c.lineTo(-s*.12,s*.1); c.stroke();
+    }
+    function drawCheckBadge(c,s){
+      c.lineWidth=3; c.lineCap='round'; c.lineJoin='round';
+      c.beginPath(); c.arc(0,0,s,0,Math.PI*2); c.stroke();
+      c.lineWidth=3.4;
+      c.beginPath(); c.moveTo(-s*.48,s*.04); c.lineTo(-s*.12,s*.42); c.lineTo(s*.52,-s*.36); c.stroke();
+    }
+    function drawMagnifier(c,s){
+      c.lineWidth=3; c.lineCap='round';
+      c.beginPath(); c.arc(-s*.12,-s*.12,s*.55,0,Math.PI*2); c.stroke();
+      c.lineWidth=3.2;
+      c.beginPath(); c.moveTo(s*.28,s*.28); c.lineTo(s*.75,s*.75); c.stroke();
+    }
+    function drawRuler(c,s){
+      c.lineWidth=2.8; c.lineCap='round'; c.lineJoin='round';
+      c.beginPath(); c.roundRect(-s,-s*.22,s*2,s*.44,s*.07); c.stroke();
+      c.lineWidth=2.2;
+      for(var i=-4;i<=4;i++){
+        var x=i*(s*.22), h2=(i%2===0)?s*.32:s*.18;
+        c.beginPath(); c.moveTo(x,-h2); c.lineTo(x,h2); c.stroke();
+      }
+    }
+    function drawCheckList(c,s){
+      c.lineWidth=2.8; c.lineCap='round'; c.lineJoin='round';
+      [-1,0,1].forEach(function(r,idx){
+        var y=r*s*.42;
+        c.beginPath(); c.roundRect(-s*.5,y-s*.16,s*.32,s*.32,s*.05); c.stroke();
+        if(idx===0){ c.beginPath(); c.moveTo(-s*.44,y); c.lineTo(-s*.32,y+s*.12); c.lineTo(-s*.18,y-s*.1); c.stroke(); }
+        c.lineWidth=2.2; c.beginPath(); c.moveTo(-s*.08,y); c.lineTo(s*.5,y); c.stroke(); c.lineWidth=2.8;
+      });
+    }
+    function drawStar(c,s){
+      // 5-pointed star (award/rating icon)
+      c.lineWidth=2.8; c.lineCap='round'; c.lineJoin='round';
+      c.beginPath();
+      for(var i=0;i<5;i++){
+        var ao=Math.PI/2, ai=Math.PI*2/5;
+        var ox=Math.cos(ao+ai*i)*s, oy=-Math.sin(ao+ai*i)*s;
+        var ix=Math.cos(ao+ai*i+ai/2)*s*.42, iy=-Math.sin(ao+ai*i+ai/2)*s*.42;
+        if(i===0) c.moveTo(ox,oy); else c.lineTo(ox,oy);
+        c.lineTo(ix,iy);
+      }
+      c.closePath(); c.stroke();
+    }
+    function drawFlag(c,s){
+      c.lineWidth=2.8; c.lineCap='round'; c.lineJoin='round';
+      // pole
+      c.beginPath(); c.moveTo(-s*.3,-s); c.lineTo(-s*.3,s); c.stroke();
+      // flag
+      c.beginPath();
+      c.moveTo(-s*.3,-s); c.lineTo(s*.65,-s*.6); c.lineTo(-s*.3,-s*.2);
+      c.closePath(); c.stroke();
+    }
+
+    /* ── SCENE: many items, strongly side-biased, across full doc ──
+       absDocFY = fraction of document height (0..1)
+       fx = fraction of screen width
+       pf = parallax factor (how much screen-Y shifts per scrollY px)
+            0 = fixed to screen, 1 = moves with document exactly
+            Use 0.3-0.9 for visible drift
+       rpp = radians per scroll-px (rotation driven by scroll)
+    ── */
+    var DRAWS = [drawClipboard,drawPencil,drawEraser,drawCheckBadge,drawMagnifier,drawRuler,drawCheckList,drawStar,drawFlag];
+
+    // Build spread: many items at left/right sides across many doc-height positions
+    var SCENE = [
+      // ── LEFT SIDE ──
+      {d:drawClipboard,  fx:0.03, afy:0.02, s:52, pf:0.55, rpp:0.0014,  ba:0.1,  op:0.38},
+      {d:drawPencil,     fx:0.06, afy:0.08, s:44, pf:0.72, rpp:-0.0019, ba:-0.2, op:0.36},
+      {d:drawCheckBadge, fx:0.04, afy:0.14, s:46, pf:0.40, rpp:0.0010,  ba:0.5,  op:0.40},
+      {d:drawEraser,     fx:0.08, afy:0.20, s:38, pf:0.82, rpp:-0.0022, ba:0.3,  op:0.35},
+      {d:drawRuler,      fx:0.05, afy:0.26, s:42, pf:0.60, rpp:0.0016,  ba:-0.4, op:0.37},
+      {d:drawStar,       fx:0.07, afy:0.32, s:34, pf:0.45, rpp:-0.0012, ba:0.7,  op:0.36},
+      {d:drawClipboard,  fx:0.04, afy:0.38, s:48, pf:0.88, rpp:0.0020,  ba:-0.1, op:0.38},
+      {d:drawFlag,       fx:0.06, afy:0.44, s:36, pf:0.55, rpp:-0.0008, ba:0.4,  op:0.35},
+      {d:drawMagnifier,  fx:0.09, afy:0.50, s:40, pf:0.70, rpp:0.0015,  ba:-0.3, op:0.37},
+      {d:drawCheckList,  fx:0.04, afy:0.56, s:38, pf:0.38, rpp:-0.0011, ba:0.6,  op:0.36},
+      {d:drawPencil,     fx:0.07, afy:0.62, s:44, pf:0.65, rpp:0.0018,  ba:-0.5, op:0.37},
+      {d:drawEraser,     fx:0.05, afy:0.68, s:36, pf:0.50, rpp:-0.0014, ba:0.2,  op:0.35},
+      {d:drawCheckBadge, fx:0.08, afy:0.74, s:42, pf:0.80, rpp:0.0022,  ba:-0.3, op:0.39},
+      {d:drawRuler,      fx:0.03, afy:0.80, s:40, pf:0.42, rpp:-0.0016, ba:0.8,  op:0.36},
+      {d:drawStar,       fx:0.06, afy:0.86, s:34, pf:0.68, rpp:0.0013,  ba:-0.6, op:0.35},
+      {d:drawClipboard,  fx:0.04, afy:0.92, s:48, pf:0.55, rpp:-0.0009, ba:0.3,  op:0.38},
+      {d:drawFlag,       fx:0.08, afy:0.97, s:36, pf:0.75, rpp:0.0020,  ba:-0.4, op:0.35},
+      // ── RIGHT SIDE ──
+      {d:drawPencil,     fx:0.97, afy:0.05, s:46, pf:0.65, rpp:-0.0017, ba:-0.5, op:0.38},
+      {d:drawCheckList,  fx:0.94, afy:0.11, s:40, pf:0.48, rpp:0.0013,  ba:0.2,  op:0.36},
+      {d:drawCheckBadge, fx:0.96, afy:0.17, s:44, pf:0.78, rpp:-0.0021, ba:0.6,  op:0.40},
+      {d:drawEraser,     fx:0.93, afy:0.23, s:36, pf:0.35, rpp:0.0011,  ba:-0.2, op:0.35},
+      {d:drawRuler,      fx:0.95, afy:0.29, s:42, pf:0.62, rpp:-0.0014, ba:0.8,  op:0.37},
+      {d:drawStar,       fx:0.97, afy:0.35, s:34, pf:0.90, rpp:0.0018,  ba:-0.6, op:0.36},
+      {d:drawClipboard,  fx:0.94, afy:0.41, s:50, pf:0.50, rpp:-0.0010, ba:0.3,  op:0.38},
+      {d:drawFlag,       fx:0.96, afy:0.47, s:36, pf:0.75, rpp:0.0023,  ba:-0.4, op:0.35},
+      {d:drawMagnifier,  fx:0.93, afy:0.53, s:40, pf:0.58, rpp:-0.0016, ba:0.5,  op:0.37},
+      {d:drawCheckList,  fx:0.97, afy:0.59, s:38, pf:0.82, rpp:0.0012,  ba:-0.1, op:0.36},
+      {d:drawPencil,     fx:0.95, afy:0.65, s:44, pf:0.44, rpp:-0.0020, ba:0.7,  op:0.37},
+      {d:drawEraser,     fx:0.93, afy:0.71, s:36, pf:0.70, rpp:0.0015,  ba:-0.3, op:0.35},
+      {d:drawCheckBadge, fx:0.96, afy:0.77, s:46, pf:0.55, rpp:-0.0018, ba:0.4,  op:0.39},
+      {d:drawRuler,      fx:0.94, afy:0.83, s:40, pf:0.38, rpp:0.0010,  ba:-0.5, op:0.36},
+      {d:drawStar,       fx:0.97, afy:0.89, s:34, pf:0.85, rpp:-0.0013, ba:0.2,  op:0.35},
+      {d:drawClipboard,  fx:0.95, afy:0.95, s:50, pf:0.60, rpp:0.0017,  ba:-0.2, op:0.38},
+      // ── SPARSE CENTER (hero section only) ──
+      {d:drawMagnifier,  fx:0.22, afy:0.03, s:38, pf:0.30, rpp:0.0009,  ba:0.1,  op:0.26},
+      {d:drawPencil,     fx:0.78, afy:0.03, s:38, pf:0.30, rpp:-0.0009, ba:-0.1, op:0.26},
+      {d:drawCheckBadge, fx:0.18, afy:0.97, s:36, pf:0.85, rpp:0.0013,  ba:0.2,  op:0.26},
+      {d:drawStar,       fx:0.82, afy:0.97, s:36, pf:0.85, rpp:-0.0013, ba:-0.2, op:0.26},
+    ];
+
+    // Ambient drift state per item
+    SCENE.forEach(function(it){
+      it.vx = (Math.random()-.5)*0.22;
+      it.vy = (Math.random()-.5)*0.15;
+      it.cx = it.fx;   // current fx (drifts slightly)
+      it.cy = it.afy;  // current afy (drifts slightly)
+    });
+
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+
+      // Get total document height each frame (updates after startAudit)
+      var docH = Math.max(document.body.scrollHeight, H * 3);
+
+      SCENE.forEach(function(it){
+        // Gentle ambient drift (in fractions)
+        it.cx += it.vx / W;
+        it.cy += it.vy / docH;
+        // Wrap X
+        if(it.cx < -0.08) it.cx += 1.16;
+        if(it.cx >  1.08) it.cx -= 1.16;
+        // Wrap Y (in doc fraction space)
+        if(it.cy < -0.04) it.cy += 1.08;
+        if(it.cy >  1.04) it.cy -= 1.08;
+
+        // Absolute doc Y position
+        var absY = it.cy * docH;
+
+        // Screen Y = where this would be if it were a normal element, minus parallax offset
+        // pf=1 → moves exactly with doc (like a real element)
+        // pf=0 → fixed on screen
+        var sy = absY - scrollY * it.pf;
+
+        // Skip if off screen
+        var margin = it.s * 2.5;
+        if(sy < -margin || sy > H + margin) return;
+
+        // Screen X
+        var sx = it.cx * W;
+
+        // Scroll-driven rotation
+        var angle = it.ba + scrollY * it.rpp;
+
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(angle);
+        ctx.strokeStyle = 'rgba(155,28,28,' + it.op + ')';
+        it.d(ctx, it.s);
+        ctx.restore();
+      });
+
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }catch(e){ console.warn('Canvas init failed:',e); }
+})();
+
+/* ══════════════════════════════════════════════
+   TOGGLE FORM CARD (+ button in divider)
+══════════════════════════════════════════════ */
+var formOpen = false;
+
+function toggleFormCard(){
+  formOpen = !formOpen;
+  const fs    = document.getElementById('fs');
+  const btn   = document.getElementById('divBtn');
+  const card  = document.getElementById('ic');
+
+  if(formOpen){
+    // 1. Open the container
+    fs.classList.add('open');
+    btn.classList.add('open');
+
+    // 2. After container starts expanding, trigger card 3D entrance
+    setTimeout(function(){
+      card.classList.add('revealed');
+      // Smooth scroll so user sees the card appear
+      fs.scrollIntoView({behavior:'smooth', block:'start'});
+    }, 80);
+
+  } else {
+    // Close: reverse card, then collapse container
+    card.classList.remove('revealed');
+    btn.classList.remove('open');
+    setTimeout(function(){
+      fs.classList.remove('open');
+    }, 400);
+  }
+}
+
+/* ══════════════════════════════════════════════
+   FORM HELPERS
+══════════════════════════════════════════════ */
+function onRecChange(){
+  document.getElementById('recCW').classList.toggle('show',
+    document.getElementById('recSel').value === '__c');
+}
+function onAudChange(){
+  document.getElementById('audCW').classList.toggle('show',
+    document.getElementById('audSel').value === '__c');
+}
+document.getElementById('aDate').valueAsDate = new Date();
+
+function getRec(){
+  var s = document.getElementById('recSel');
+  return s.value === '__c' ? (document.getElementById('recCust').value || '—') : (s.value || '—');
+}
+function getAud(){
+  var s = document.getElementById('audSel');
+  return s.value === '__c' ? (document.getElementById('audCust').value || '—') : (s.value || '—');
+}
+
+/* ══════════════════════════════════════════════
+   CHECKLIST DATA
+══════════════════════════════════════════════ */
+var SECS = [
+  {t:"Call Handling and CTM Metrics",ss:[
+    {l:"Call Reporting",i:["Call totals match CTM","Inbound and outbound numbers accurate","Daily metrics posted in Admin Team channel","CTM screenshot attached","No pending missed calls","No pending texts","No pending faxes"]},
+    {l:"Availability and Missed Calls",i:["Status accurate during shift","Availability rate reviewed","Speed to answer reviewed","True missed calls verified","Missed calls logged in Excel","Follow up completed on missed calls","Patterns identified if applicable"]}
+  ]},
+  {t:"Admin Callback Request Channel",ss:[
+    {l:"Acknowledgment",i:['All requests acknowledged within 15 minutes','"On it" or "Mine" posted',"No duplicate claims"]},
+    {l:"Completion",i:["Completed within 1 hour",'"Done" or "Complete" posted',"Attempt documented if client unavailable","Follow up scheduled if needed"]},
+    {l:"Documentation",i:["Client name included","Phone number included","Reason clearly stated","Detailed Lolly Law note entered","No pending requests at end of shift"]}
+  ]},
+  {t:"Text and Phone Communication",ss:[
+    {l:"Response Time",i:["All texts responded to within 15 minutes","No unread messages","Proper escalation tagging when required"]},
+    {l:"Communication Quality",i:["Texts end with open ended question","Calls end with open ended closing","Client clearly assisted","No abrupt conversation endings"]}
+  ]},
+  {t:"Appointments in Lolly Law",ss:[
+    {l:"Appointment Compliance",i:["Appointment entered correctly","Correct appointment type selected","Correct legal team assigned","Detailed notes documented","Client contact information verified","Reschedules handled properly"]}
+  ]},
+  {t:"Translation and Time Tracking",ss:[
+    {l:"Translation Standards",i:["Client and matter identified","Document readable","Time logged same day","Time within standard timeframe","Certification included","Line by line verification completed","Final proofread completed","Lolly Law tracker"]}
+  ]},
+  {t:"Lolly Law Documentation",ss:[
+    {l:"Documentation Quality",i:["No vague notes","Outcome clearly documented","Proper tags applied","Tasks completed or reassigned","No open loops"]}
+  ]},
+  {t:"Google Review KPI",ss:[
+    {l:"Review Tracking",i:["Review requested after positive interaction","Link sent to client","Logged in tracker","On pace for minimum 5 per week"]}
+  ]},
+  {t:"Payments and Admin Tasks",ss:[
+    {l:"Payment Documentation",i:["Payments processed documented","Confirmation provided to client","Reflected in daily metrics post"]}
+  ]},
+  {t:"End of Shift Accountability",ss:[
+    {l:"Shift Closing",i:["No pending callback requests","No pending texts","No unresolved channel items","Missed call log updated","Status accurate before logging off"]}
+  ]},
+  {t:"Mail Processing Audit",ss:[
+    {l:"Mail Processing Standard",i:["Uploaded to correct client matter in Lolly Law","Proper tags applied","Mail processing completed within 1 hour","Legal team notified if required","Reason documented"]}
+  ]},
+  {t:"Production Tracker Update Audit",ss:[
+    {l:"Approvals and Denials",i:["All approvals updated in Production Tracker","All denials updated in Production Tracker","Correct case type selected","Date of approval/denial entered accurately","Notes updated if required"]},
+    {l:"Cross-Check",i:["Matches Lolly Law case status","No missing updates"]}
+  ]},
+  {t:"End-of-Day Screenshot Post Audit",ss:[
+    {l:"Admin Team Channel Post",i:["CTM screenshot posted","No pending missed calls","No pending texts","No pending faxes","Metrics totals posted","Daily checklist confirmed complete"]}
+  ]},
+  {t:"Legal Scheduling Channel Audit",ss:[
+    {l:"Acknowledgment Standard",i:["Request acknowledged within 15 minutes",'"On it" or "Mine" posted',"No duplicate claims"]},
+    {l:"Completion Standard",i:["Scheduling completed within 1 hour",'"Done" posted in channel after completion',"If client unavailable, attempt documented","Follow up scheduled if needed"]},
+    {l:"Appointment Setup Compliance",i:["Correct appointment type selected","Proper scheduling template used","Correct legal team assigned","Appointment entered in correct matter","No duplicate appointments created"]},
+    {l:"Client Confirmation",i:["Appointment confirmation sent to client","Date, time, and meeting link verified","Any preparation instructions included"]},
+    {l:"Lolly Law Documentation",i:["Detailed note entered","Outcome clearly documented","Proper tags applied"]},
+    {l:"End of Shift Accountability",i:["No pending scheduling requests","Channel fully cleared before logging off"]}
+  ]}
+];
+
+/* ══════════════════════════════════════════════
+   PROGRESS (sections reviewed)
+══════════════════════════════════════════════ */
+var reviewedSections = new Set();
+var TOTAL_SECS = SECS.length;
+
+function updateProgBar(){
+  var n = reviewedSections.size;
+  document.getElementById('pbf').style.width = (n / TOTAL_SECS * 100) + '%';
+  document.getElementById('pct').textContent = n + ' of ' + TOTAL_SECS + ' sections';
+}
+
+/* ══════════════════════════════════════════════
+   BUILD CHECKLIST
+══════════════════════════════════════════════ */
+var totalItems = 0;
+
+function buildChecklist(){
+  var cont = document.getElementById('sc-cont');
+  cont.innerHTML = '';
+  totalItems = 0;
+  reviewedSections = new Set();
+
+  SECS.forEach(function(sec, si){
+    var cnt = sec.ss.reduce(function(a, s){ return a + s.i.length; }, 0);
+    totalItems += cnt;
+
+    var card = document.createElement('div');
+    card.className = 'sc';
+    card.id = 'sc' + si;
+
+    var hdr = document.createElement('div');
+    hdr.className = 'sh';
+    hdr.innerHTML =
+      '<div class="snum">' + (si + 1) + '</div>' +
+      '<div class="stw">' +
+        '<div class="stitle">' + sec.t + '</div>' +
+        '<div class="spm" id="sm' + si + '">Not reviewed yet</div>' +
+      '</div>' +
+      '<div class="schev">▼</div>';
+
+    hdr.onclick = function(){
+      card.classList.toggle('collapsed');
+      // Mark reviewed on very first interaction with this section
+      if(!card.classList.contains('reviewed')){
+        card.classList.add('reviewed');
+        reviewedSections.add(si);
+        updateProgBar();
+      }
+    };
+    card.appendChild(hdr);
+
+    var body = document.createElement('div');
+    body.className = 'sb';
+
+    sec.ss.forEach(function(sub, si2){
+      var lbl = document.createElement('div');
+      lbl.className = 'sublbl';
+      lbl.textContent = sub.l;
+      body.appendChild(lbl);
+
+      sub.i.forEach(function(item, ii){
+        var id  = 'c' + si + '_' + si2 + '_' + ii;
+        var row = document.createElement('label');
+        row.className = 'ci';
+        row.htmlFor   = id;
+        row.innerHTML =
+          '<input type="checkbox" id="' + id + '" data-s="' + si + '"/>' +
+          '<span class="clbl">' + item + '</span>';
+        row.querySelector('input').addEventListener('change', function(){
+          row.classList.toggle('done', this.checked);
+          updateSecLabel(si);
+        });
+        body.appendChild(row);
+      });
+    });
+
+    var nw = document.createElement('div');
+    nw.className = 'nw';
+    nw.innerHTML = '<label>Notes</label><textarea id="n' + si + '" placeholder="Add notes for this section…"></textarea>';
+    body.appendChild(nw);
+    card.appendChild(body);
+    cont.appendChild(card);
+  });
+
+  document.getElementById('sti').textContent = totalItems;
+  updateProgBar();
+}
+
+function updateSecLabel(si){
+  var els     = Array.from(document.querySelectorAll('[data-s="' + si + '"]'));
+  var checked = els.filter(function(e){ return e.checked; }).length;
+  var total   = els.length;
+  document.getElementById('sm' + si).textContent =
+    checked === 0
+      ? 'Opened — no items checked yet'
+      : checked + ' item' + (checked > 1 ? 's' : '') + ' checked · ' + (total - checked) + ' left';
+}
+
+/* ══════════════════════════════════════════════
+   SCROLL REVEAL — section cards
+══════════════════════════════════════════════ */
+var cObs = new IntersectionObserver(function(entries){
+  entries.forEach(function(entry){
+    if(entry.isIntersecting){
+      setTimeout(function(){ entry.target.classList.add('revealed'); }, 50);
+      cObs.unobserve(entry.target);
+    }
+  });
+}, {threshold: 0.06});
+
+function observeCards(){
+  document.querySelectorAll('.sc').forEach(function(c){ cObs.observe(c); });
+}
+
+/* ══════════════════════════════════════════════
+   START AUDIT
+══════════════════════════════════════════════ */
+function startAudit(){
+  var rec = getRec();
+  var aud = getAud();
+  var dt  = document.getElementById('aDate').value || '—';
+
+  if(!rec || rec === '—'){
+    alert('Please select or enter a receptionist name.');
+    return;
+  }
+
+  document.getElementById('bn').textContent = rec;
+  document.getElementById('bd').textContent = dt;
+  document.getElementById('ba').textContent = aud;
+
+  buildChecklist();
+
+  var ca = document.getElementById('cl-area');
+  var dl = document.getElementById('dl-area');
+  ca.style.display = 'block';
+  dl.style.display = 'block';
+  document.getElementById('progBar').classList.add('show');
+
+  // Stagger-animate download cards in freshly every time
+  document.querySelectorAll('.dl-card').forEach(function(c){
+    c.classList.remove('dl-reveal');
+    c.classList.add('dl-hidden');
+    c.style.transition = 'none';
+  });
+  setTimeout(function(){
+    document.querySelectorAll('.dl-card').forEach(function(c, i){
+      setTimeout(function(){
+        c.style.transition = 'opacity .55s ease, transform .6s cubic-bezier(.22,1,.36,1)';
+        c.classList.add('dl-reveal');
+      }, i * 110);
+    });
+  }, 150);
+
+  setTimeout(function(){
+    ca.scrollIntoView({behavior:'smooth', block:'start'});
+    setTimeout(observeCards, 500);
+  }, 120);
+}
+
+/* ══════════════════════════════════════════════
+   RESET / NEW AUDIT
+══════════════════════════════════════════════ */
+function resetAudit(){
+  if(!confirm('Start a new audit? Your current progress will be cleared.')) return;
+
+  // Hide checklist + download sections
+  var ca = document.getElementById('cl-area');
+  var dl = document.getElementById('dl-area');
+  ca.style.display = 'none';
+  dl.style.display = 'none';
+  document.getElementById('progBar').classList.remove('show');
+
+  // Reset form
+  document.getElementById('recSel').value = '';
+  document.getElementById('audSel').value = '';
+  document.getElementById('aDate').valueAsDate = new Date();
+  document.getElementById('recCW').classList.remove('show');
+  document.getElementById('audCW').classList.remove('show');
+  document.getElementById('recCust').value = '';
+  document.getElementById('audCust').value = '';
+
+  // Clear checklist
+  document.getElementById('sc-cont').innerHTML = '';
+  reviewedSections = new Set();
+  updateProgBar();
+
+  // Close the form card and scroll to top
+  var ic = document.getElementById('ic');
+  ic.classList.remove('revealed');
+  var fs = document.getElementById('fs');
+  var btn = document.getElementById('divBtn');
+  fs.classList.remove('open');
+  btn.classList.remove('open');
+  formOpen = false;
+
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+/* ══════════════════════════════════════════════
+   DOWNLOAD CARD — 3D mouse tilt + ripple
+══════════════════════════════════════════════ */
+document.querySelectorAll('.dl-card').forEach(function(card){
+  card.addEventListener('mousemove', function(e){
+    var r  = card.getBoundingClientRect();
+    var x  = e.clientX - r.left, y = e.clientY - r.top;
+    var cx2 = r.width / 2, cy2 = r.height / 2;
+    var rY  = ((x - cx2) / cx2) * 10;
+    var rX  = -((y - cy2) / cy2) * 7;
+    card.style.transition = 'box-shadow .25s, border-color .25s';
+    card.style.transform  = 'perspective(800px) rotateX(' + rX + 'deg) rotateY(' + rY + 'deg) translateZ(4px)';
+  });
+  card.addEventListener('mouseleave', function(){
+    card.style.transition = 'transform .4s ease, box-shadow .25s, border-color .25s';
+    card.style.transform  = 'perspective(800px) rotateX(0) rotateY(0) translateZ(0)';
+  });
+  card.addEventListener('click', function(e){
+    var r   = card.getBoundingClientRect();
+    var rpl = document.createElement('span');
+    rpl.className = 'ripple';
+    var size = Math.max(r.width, r.height) * 2;
+    rpl.style.width  = rpl.style.height = size + 'px';
+    rpl.style.left   = (e.clientX - r.left  - size / 2) + 'px';
+    rpl.style.top    = (e.clientY - r.top   - size / 2) + 'px';
+    card.appendChild(rpl);
+    setTimeout(function(){ rpl.remove(); }, 700);
+  });
+});
+
+/* ══════════════════════════════════════════════
+   DOWNLOAD ANIMATION HELPER
+══════════════════════════════════════════════ */
+function animateDownload(card, fn){
+  card.style.transition = 'transform .15s ease';
+  card.style.transform  = 'perspective(800px) scale(0.96) rotateX(5deg)';
+  setTimeout(function(){
+    card.style.transition = 'transform .3s cubic-bezier(.34,1.56,.64,1)';
+    card.style.transform  = 'perspective(800px) scale(1) rotateX(0)';
+    fn();
+  }, 150);
+}
+
+/* ══════════════════════════════════════════════
+   DATA HELPER
+══════════════════════════════════════════════ */
+function getAuditData(){
+  var rec = getRec(), aud = getAud(), dt = document.getElementById('aDate').value || '—';
+  var rows = [];
+  SECS.forEach(function(sec, si){
+    sec.ss.forEach(function(sub){
+      sub.i.forEach(function(item){
+        var el = Array.from(document.querySelectorAll('[data-s="' + si + '"]'))
+          .find(function(e){ return e.closest('label') && e.closest('label').querySelector('.clbl') && e.closest('label').querySelector('.clbl').textContent === item; });
+        rows.push({
+          section: sec.t, subsection: sub.l, item: item,
+          checked: el ? el.checked : false,
+          status:  el ? (el.checked ? 'PASS' : 'N/A') : 'N/A'
+        });
+      });
+    });
+    var noteEl = document.getElementById('n' + si);
+    if(noteEl && noteEl.value.trim()){
+      rows.push({section: sec.t, subsection: 'NOTES', item: noteEl.value.trim(), checked: false, status: 'NOTE'});
+    }
+  });
+  return {rec: rec, aud: aud, dt: dt, rows: rows};
+}
+
+/* ══════════════════════════════════════════════
+   TXT DOWNLOAD
+══════════════════════════════════════════════ */
+function downloadTXT(card){
+  animateDownload(card, function(){
+    var d = getAuditData();
+    var txt = 'SOLANO IMMIGRATION LAW FIRM\nRECEPTIONIST AUDIT SHEET\n' + '='.repeat(48) + '\n\n';
+    txt += 'Date: ' + d.dt + '\nReceptionist: ' + d.rec + '\nAuditor: ' + d.aud + '\n\n';
+    txt += '='.repeat(48) + '\n';
+    var curSec = '';
+    d.rows.forEach(function(r){
+      if(r.section !== curSec){
+        curSec = r.section;
+        txt += '\n' + r.section.toUpperCase() + '\n' + '-'.repeat(40) + '\n';
+      }
+      if(r.status === 'NOTE'){ txt += '  > NOTE: ' + r.item + '\n'; }
+      else { txt += '  [' + (r.checked ? 'X' : ' ') + '] ' + r.item + '\n'; }
+    });
+    txt += '\n' + '-'.repeat(48) + '\nCreated by Jay Paulino — IT Systems & Support Specialist\nSolano Immigration Law Firm\n';
+    var a = document.createElement('a');
+    a.href     = 'data:text/plain;charset=utf-8,' + encodeURIComponent(txt);
+    a.download = 'Audit_' + d.rec.replace(/\s+/g,'_') + '_' + d.dt + '.txt';
+    a.click();
+  });
+}
+
+/* ══════════════════════════════════════════════
+   PDF FORMATTED
+══════════════════════════════════════════════ */
+function downloadPDFFormatted(card){
+  animateDownload(card, function(){
+    var jsPDF = window.jspdf.jsPDF;
+    var doc   = new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+    var pw = 215.9, ph = 279.4;
+    var d = getAuditData();
+    var RED=[155,28,28],WHITE=[255,255,255],DARK=[26,26,26],MUT=[130,130,130];
+
+    doc.setFillColor(...WHITE); doc.rect(0,0,pw,ph,'F');
+    doc.setFillColor(...RED);   doc.rect(0,0,pw,22,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...WHITE);
+    doc.text('SOLANO IMMIGRATION LAW FIRM',14,13);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(255,200,200);
+    doc.text('INTERNAL USE ONLY', pw-14, 13, {align:'right'});
+
+    doc.setFontSize(22); doc.setFont('helvetica','bold'); doc.setTextColor(...DARK);
+    doc.text('RECEPTIONIST AUDIT SHEET', pw/2, 38, {align:'center'});
+    doc.setDrawColor(...RED); doc.setLineWidth(.8); doc.line(pw/2-46,42,pw/2+46,42);
+
+    var y = 55;
+    [['DATE',d.dt],['RECEPTIONIST',d.rec],['AUDITOR',d.aud]].forEach(function(pair,i){
+      var x = 14 + i * (pw-28) / 3;
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...MUT); doc.text(pair[0],x,y);
+      doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(...DARK); doc.text(pair[1],x,y+7);
+    });
+    doc.setDrawColor(200,200,200); doc.setLineWidth(.3); doc.line(14,y+14,pw-14,y+14); y += 22;
+
+    var curSec = '';
+    d.rows.forEach(function(r){
+      if(y > ph-20){ doc.addPage(); doc.setFillColor(...WHITE); doc.rect(0,0,pw,ph,'F'); y=16; }
+      if(r.section !== curSec){
+        curSec = r.section;
+        y += 4;
+        if(y > ph-22){ doc.addPage(); doc.setFillColor(...WHITE); doc.rect(0,0,pw,ph,'F'); y=16; }
+        doc.setFillColor(...RED); doc.rect(14,y-5,pw-28,10,'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...WHITE);
+        doc.text(r.section.toUpperCase(),18,y+1); y += 12;
+      }
+      if(r.status === 'NOTE'){
+        doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(...MUT);
+        var lines = doc.splitTextToSize('Note: '+r.item, pw-40);
+        doc.text(lines,20,y); y += lines.length*5+2; return;
+      }
+      var ck = r.checked;
+      doc.setFillColor(ck ? 155 : 245, ck ? 28 : 245, ck ? 28 : 245);
+      doc.setDrawColor(ck ? 155 : 180, ck ? 28 : 180, ck ? 28 : 180);
+      doc.roundedRect(18,y-3.5,4.2,4.2,.5,.5,'FD');
+      if(ck){ doc.setDrawColor(...WHITE); doc.setLineWidth(.7); doc.line(18.8,y-1.5,19.8,y+.2); doc.line(19.8,y+.2,21.5,y-2.5); }
+      doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      doc.setTextColor(ck ? 130 : 26, ck ? 130 : 26, ck ? 130 : 26);
+      doc.text(r.item,25,y); y += 6.5;
+    });
+
+    doc.setFillColor(...RED); doc.rect(0,ph-14,pw,14,'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(255,200,200);
+    doc.text('Created by Jay Paulino — IT Systems & Support Specialist | Solano Immigration Law Firm', pw/2, ph-5, {align:'center'});
+    doc.save('Audit_Formatted_' + d.rec.replace(/ /g,'_') + '_' + d.dt + '.pdf');
+  });
+}
+
+/* ══════════════════════════════════════════════
+   PDF PLAIN
+══════════════════════════════════════════════ */
+function downloadPDFPlain(card){
+  animateDownload(card, function(){
+    var jsPDF = window.jspdf.jsPDF;
+    var doc   = new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+    var pw = 215.9, ph = 279.4;
+    var d = getAuditData();
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(14);
+    doc.text('RECEPTIONIST AUDIT SHEET',14,18);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10);
+    doc.text('Receptionist: '+d.rec+'   |   Date: '+d.dt+'   |   Auditor: '+d.aud,14,28);
+    doc.setDrawColor(180,180,180); doc.setLineWidth(.4); doc.line(14,32,pw-14,32);
+
+    var y = 42; var curSec = '';
+    d.rows.forEach(function(r){
+      if(y > ph-20){ doc.addPage(); y=16; }
+      if(r.section !== curSec){
+        curSec = r.section; y += 3;
+        if(y > ph-18){ doc.addPage(); y=16; }
+        doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(50,50,50);
+        doc.text(r.section,14,y); y += 6;
+        doc.setDrawColor(200,200,200); doc.setLineWidth(.3); doc.line(14,y,pw-14,y); y += 4;
+      }
+      if(r.status === 'NOTE'){
+        doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(100,100,100);
+        var lines = doc.splitTextToSize('Note: '+r.item, pw-36);
+        doc.text(lines,18,y); y += lines.length*5+2; return;
+      }
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(30,30,30);
+      doc.text('[' + (r.checked?'X':' ') + '] ' + r.item, 18, y); y += 6;
+    });
+    doc.save('Audit_Plain_' + d.rec.replace(/ /g,'_') + '_' + d.dt + '.pdf');
+  });
+}
+
+/* ══════════════════════════════════════════════
+   EXCEL FORMATTED
+══════════════════════════════════════════════ */
+function downloadExcelFormatted(card){
+  animateDownload(card, function(){
+    var d  = getAuditData();
+    var wb = XLSX.utils.book_new();
+
+    var summaryData = [
+      ['SOLANO IMMIGRATION LAW FIRM','',''],
+      ['Receptionist Audit Sheet','',''],
+      ['','',''],
+      ['Date',d.dt,''],
+      ['Receptionist',d.rec,''],
+      ['Auditor',d.aud,''],
+      ['','',''],
+      ['Sections Reviewed', reviewedSections.size + ' of ' + SECS.length, ''],
+      ['Items Checked', d.rows.filter(function(r){return r.checked;}).length + ' of ' + d.rows.filter(function(r){return r.status!=='NOTE';}).length, ''],
+    ];
+    var sw = XLSX.utils.aoa_to_sheet(summaryData);
+    sw['!cols'] = [{wch:24},{wch:30},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, sw, 'Summary');
+
+    var detail = [['Section','Subsection','Item','Status']].concat(
+      d.rows.filter(function(r){return r.status!=='NOTE';}).map(function(r){
+        return [r.section, r.subsection, r.item, r.checked ? '✓ PASS' : '— N/A'];
+      })
+    );
+    var dw = XLSX.utils.aoa_to_sheet(detail);
+    dw['!cols'] = [{wch:32},{wch:28},{wch:50},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, dw, 'Audit Detail');
+
+    var notes = d.rows.filter(function(r){return r.status==='NOTE';});
+    if(notes.length){
+      var nw2 = XLSX.utils.aoa_to_sheet([['Section','Notes']].concat(notes.map(function(r){return [r.section,r.item];})));
+      nw2['!cols'] = [{wch:32},{wch:60}];
+      XLSX.utils.book_append_sheet(wb, nw2, 'Notes');
+    }
+    XLSX.writeFile(wb, 'Audit_Formatted_' + d.rec.replace(/ /g,'_') + '_' + d.dt + '.xlsx');
+  });
+}
+
+/* ══════════════════════════════════════════════
+   EXCEL PLAIN
+══════════════════════════════════════════════ */
+function downloadExcelPlain(card){
+  animateDownload(card, function(){
+    var d  = getAuditData();
+    var wb = XLSX.utils.book_new();
+    var data = [['date','receptionist','auditor','section','subsection','item','status']].concat(
+      d.rows.filter(function(r){return r.status!=='NOTE';}).map(function(r){
+        return [d.dt, d.rec, d.aud, r.section, r.subsection, r.item, r.checked ? 'PASS' : 'NA'];
+      })
+    );
+    var ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = [{wch:14},{wch:18},{wch:18},{wch:32},{wch:28},{wch:50},{wch:10}];
+    XLSX.utils.book_append_sheet(wb, ws, 'audit_data');
+    XLSX.writeFile(wb, 'Audit_Raw_' + d.rec.replace(/ /g,'_') + '_' + d.dt + '.xlsx');
+  });
+}
+</script>
+</body>
+</html>
