@@ -283,8 +283,8 @@ footer strong{color:var(--red);}
   <p class="hero-desc">A structured quality-assurance tool to review receptionist performance across calls, documentation, scheduling, and client communication.</p>
   <div class="hero-rule"></div>
   <div class="stats">
-    <div class="stat"><div class="stat-n">13</div><div class="stat-l">Audit Sections</div></div>
-    <div class="stat"><div class="stat-n" id="sti">102</div><div class="stat-l">Checkpoints</div></div>
+    <div class="stat"><div class="stat-n">24</div><div class="stat-l">Audit Sections</div></div>
+    <div class="stat"><div class="stat-n" id="sti">146</div><div class="stat-l">Checkpoints</div></div>
     <div class="stat"><div class="stat-n">6</div><div class="stat-l">Receptionists</div></div>
   </div>
   <div class="scue" onclick="document.querySelector('.divider').scrollIntoView({behavior:'smooth'})">
@@ -709,57 +709,393 @@ function getAud(){
    CHECKLIST DATA
 ══════════════════════════════════════════════ */
 var SECS = [
-  {t:"Call Handling and CTM Metrics",ss:[
-    {l:"Call Reporting",i:["Call totals match CTM","Inbound and outbound numbers accurate","Daily metrics posted in Admin Team channel","CTM screenshot attached","No pending missed calls","No pending texts","No pending faxes"]},
-    {l:"Availability and Missed Calls",i:["Status accurate during shift","Availability rate reviewed","Speed to answer reviewed","True missed calls verified","Missed calls logged in Excel","Follow up completed on missed calls","Patterns identified if applicable"]}
-  ]},
-  {t:"Admin Callback Request Channel",ss:[
-    {l:"Acknowledgment",i:['All requests acknowledged within 15 minutes','"On it" or "Mine" posted',"No duplicate claims"]},
-    {l:"Completion",i:["Completed within 1 hour",'"Done" or "Complete" posted',"Attempt documented if client unavailable","Follow up scheduled if needed"]},
-    {l:"Documentation",i:["Client name included","Phone number included","Reason clearly stated","Detailed Lolly Law note entered","No pending requests at end of shift"]}
-  ]},
-  {t:"Text and Phone Communication",ss:[
-    {l:"Response Time",i:["All texts responded to within 15 minutes","No unread messages","Proper escalation tagging when required"]},
-    {l:"Communication Quality",i:["Texts end with open ended question","Calls end with open ended closing","Client clearly assisted","No abrupt conversation endings"]}
-  ]},
-  {t:"Appointments in Lolly Law",ss:[
-    {l:"Appointment Compliance",i:["Appointment entered correctly","Correct appointment type selected","Correct legal team assigned","Detailed notes documented","Client contact information verified","Reschedules handled properly"]}
-  ]},
-  {t:"Translation and Time Tracking",ss:[
-    {l:"Translation Standards",i:["Client and matter identified","Document readable","Time logged same day","Time within standard timeframe","Certification included","Line by line verification completed","Final proofread completed","Lolly Law tracker"]}
-  ]},
-  {t:"Lolly Law Documentation",ss:[
-    {l:"Documentation Quality",i:["No vague notes","Outcome clearly documented","Proper tags applied","Tasks completed or reassigned","No open loops"]}
-  ]},
-  {t:"Google Review KPI",ss:[
-    {l:"Review Tracking",i:["Review requested after positive interaction","Link sent to client","Logged in tracker","On pace for minimum 5 per week"]}
-  ]},
-  {t:"Payments and Admin Tasks",ss:[
-    {l:"Payment Documentation",i:["Payments processed documented","Confirmation provided to client","Reflected in daily metrics post"]}
-  ]},
-  {t:"End of Shift Accountability",ss:[
-    {l:"Shift Closing",i:["No pending callback requests","No pending texts","No unresolved channel items","Missed call log updated","Status accurate before logging off"]}
-  ]},
-  {t:"Mail Processing Audit",ss:[
-    {l:"Mail Processing Standard",i:["Uploaded to correct client matter in Lolly Law","Proper tags applied","Mail processing completed within 1 hour","Legal team notified if required","Reason documented"]}
-  ]},
-  {t:"Production Tracker Update Audit",ss:[
-    {l:"Approvals and Denials",i:["All approvals updated in Production Tracker","All denials updated in Production Tracker","Correct case type selected","Date of approval/denial entered accurately","Notes updated if required"]},
-    {l:"Cross-Check",i:["Matches Lolly Law case status","No missing updates"]}
-  ]},
-  {t:"End-of-Day Screenshot Post Audit",ss:[
-    {l:"Admin Team Channel Post",i:["CTM screenshot posted","No pending missed calls","No pending texts","No pending faxes","Metrics totals posted","Daily checklist confirmed complete"]}
-  ]},
-  {t:"Legal Scheduling Channel Audit",ss:[
-    {l:"Acknowledgment Standard",i:["Request acknowledged within 15 minutes",'"On it" or "Mine" posted',"No duplicate claims"]},
-    {l:"Completion Standard",i:["Scheduling completed within 1 hour",'"Done" posted in channel after completion',"If client unavailable, attempt documented","Follow up scheduled if needed"]},
-    {l:"Appointment Setup Compliance",i:["Correct appointment type selected","Proper scheduling template used","Correct legal team assigned","Appointment entered in correct matter","No duplicate appointments created"]},
-    {l:"Client Confirmation",i:["Appointment confirmation sent to client","Date, time, and meeting link verified","Any preparation instructions included"]},
-    {l:"Lolly Law Documentation",i:["Detailed note entered","Outcome clearly documented","Proper tags applied"]},
-    {l:"End of Shift Accountability",i:["No pending scheduling requests","Channel fully cleared before logging off"]}
-  ]}
+  {
+    t: "1. Translations",
+    ss: [
+      {
+        l: "Translation Standards",
+        i: [
+          "Translation request acknowledged within 15 minutes",
+          "Completed within expected timeframe (based on document size)",
+          "Proper details included (language, deadline, document type)",
+          "Translation quality reviewed before sending",
+          "Attorney/paralegal instructions followed exactly",
+          "Logged in Lolly Law (if required)",
+          "Translation expense tracked and recorded",
+          "No delays without communication/update in channel"
+        ]
+      }
+    ]
+  },
+  {
+    t: "2. Legal Scheduling",
+    ss: [
+      {
+        l: "Scheduling Standards",
+        i: [
+          "Request acknowledged within 15 minutes",
+          "Correct template used (no broken formatting)",
+          "Appointment scheduled at least 24–48 hours out (no same-day unless approved)",
+          "If marked “ASAP,” scheduled at minimum 24 hours ahead",
+          "Bookings link used correctly",
+          "Outlook invite updated: Title includes “Phone Call:” or “Teams Call:”",
+          "Client email added",
+          "Paralegal added",
+          "Date/time confirmed with client",
+          "Reminder text sent with: Paralegal name & Correct Zoom/Teams link",
+          "Screenshot of reminder saved in Lolly Law",
+          "No scheduling through Lolly Law tags"
+        ]
+      }
+    ]
+  },
+  {
+    t: "3. Admin Callback Request",
+    ss: [
+      {
+        l: "Callback Processing",
+        i: [
+          "Request acknowledged within 15 minutes",
+          "Call completed within 1 hour",
+          "Proper notes documented in Lolly Law",
+          "Outcome clearly stated (resolved, escalated, follow-up needed)",
+          "No missed callbacks",
+          "Client contacted through all available methods if no answer"
+        ]
+      }
+    ]
+  },
+  {
+    t: "4. Greeter Callback Request",
+    ss: [
+      {
+        l: "Greeter Callbacks",
+        i: [
+          "Request acknowledged within 15 minutes",
+          "Both parties called (not just one)",
+          "Follow-up via text/email if no answer",
+          "Clear directions provided to client",
+          "Proper documentation in Lolly Law",
+          "No delays in response"
+        ]
+      }
+    ]
+  },
+  {
+    t: "5. Client Inquiries",
+    ss: [
+      {
+        l: "Inquiry Handling",
+        i: [
+          "Request acknowledged within 15 minutes",
+          "Logged in Lolly Law with detailed notes",
+          "Includes: What client requested & How request was received (call, text, walk-in)",
+          "Tagged appropriately (Gisselle when required)",
+          "No legal advice provided",
+          "Routed to correct team (not Sales for existing clients)",
+          "Follow-up completed or properly escalated"
+        ]
+      }
+    ]
+  },
+  {
+    t: "6. Client Complaints",
+    ss: [
+      {
+        l: "Complaint Handling",
+        i: [
+          "Correct complaint tier template used (no edits outside structure)",
+          "Logged in Lolly Law",
+          "Screenshot of complaint saved in Lolly Law",
+          "Tone is professional and empathetic",
+          "Proper escalation to Legal/Admin",
+          "No delays in handling",
+          "Follow-up tracked until resolution"
+        ]
+      }
+    ]
+  },
+  {
+    t: "7. Refunds",
+    ss: [
+      {
+        l: "Refunds Processing",
+        i: [
+          "Refund request acknowledged within 15 minutes",
+          "Logged in Lolly Law",
+          "Posted in Refund channel",
+          "Reassurance script used (no guarantees or timelines)",
+          "Channel post bumped if no response",
+          "Proper follow-up completed",
+          "Legal tagged when required"
+        ]
+      }
+    ]
+  },
+  {
+    t: "8. Billing",
+    ss: [
+      {
+        l: "Billing Processing",
+        i: [
+          "Attempt made to resolve before escalating",
+          "No messages taken for payments",
+          "Payment processed in real time when possible",
+          "Correct platform used (Invoiced, Zelle, etc.)",
+          "Notes include payment breakdown/details",
+          "Red Rubber Band clients immediately escalated to Aylin",
+          "If unresolved, Billing ticket created",
+          "No delays in response"
+        ]
+      }
+    ]
+  },
+  {
+    t: "9. Admin Channel",
+    ss: [
+      {
+        l: "Admin Tasks",
+        i: [
+          "Request acknowledged within 15 minutes",
+          "Completed within 1 hour",
+          "Clear communication and updates provided",
+          "Proper tagging of responsible team members",
+          "Task fully completed (not partially addressed)",
+          "No missed or ignored requests",
+          "Follow-up provided if task requires multiple steps"
+        ]
+      }
+    ]
+  },
+  {
+    t: "Global Audit Standards",
+    ss: [
+      {
+        l: "Applies to ALL Channels",
+        i: [
+          "Acknowledgement within 15 minutes",
+          "Completion within 1 hour (unless task-based exception)",
+          "Correct template usage (no modifications that break structure)",
+          "Proper tagging (no missed stakeholders)",
+          "Lolly Law documentation completed and accurate",
+          "No incomplete tasks left without update",
+          "Professional tone in all communication",
+          "No shortcuts that bypass SOP"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 1. Availability & Status Management",
+    ss: [
+      {
+        l: "Status Management",
+        i: [
+          "Logged into CTM on time at start of shift",
+          "Status set to Ready when available",
+          "No excessive time in Not Ready (valid reason only)",
+          "Proper use of statuses (Ready = able to take calls, Not Ready = valid reason only)",
+          "Case Notes used only after calls",
+          "No misuse of Not Ready to avoid calls",
+          "Smooth transitions between statuses (no gaps)"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 2. Case Notes Timing",
+    ss: [
+      {
+        l: "Case Notes Timing",
+        i: [
+          "Case notes completed within 3 minutes or less",
+          "No extended time in Case Notes after calls",
+          "Notes are clear, complete, and accurate",
+          "CTM AI/voice analysis reviewed when needed",
+          "Notes properly transferred into Lolly Law when required"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 3. Missed Calls Audit",
+    ss: [
+      {
+        l: "Missed Calls Audit",
+        i: [
+          "Zero missed calls expectation followed",
+          "All missed calls reviewed and categorized",
+          "True missed calls clearly identified",
+          "Patterns of missed calls addressed",
+          "Post-meeting (L10, Tune-Up Tuesday) missed calls minimized",
+          "Immediate follow-up on missed calls"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 4. Speed to Answer",
+    ss: [
+      {
+        l: "Speed to Answer",
+        i: [
+          "Calls answered promptly",
+          "No excessive ringing before answer",
+          "No delays while in Ready status",
+          "Performance consistent throughout shift"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 5. Call Handling Quality",
+    ss: [
+      {
+        l: "Call Handling Quality",
+        i: [
+          "Proper greeting and professional tone",
+          "Call duration aligns with type (1–3 min routing, 4–6 min CS, 6–10 min complex)",
+          "No unnecessarily long calls",
+          "Client guided clearly and efficiently",
+          "No dead air or lack of direction"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 6. Hold Time Management",
+    ss: [
+      {
+        l: "Hold Time Management",
+        i: [
+          "Hold time under 30 seconds ideal",
+          "If longer: Client updated regularly & Proper explanation given",
+          "No excessive or abandoned holds"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 7. Open-Ended Closings",
+    ss: [
+      {
+        l: "Open-Ended Closings",
+        i: [
+          "Every call ends with open-ended question (e.g., 'Is there anything else I can help you with today?')",
+          "Client offered additional assistance",
+          "Opportunity used to increase satisfaction"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 8. Call Outcomes & Documentation",
+    ss: [
+      {
+        l: "Call Outcomes & Documentation",
+        i: [
+          "Correct outcome selected in CTM",
+          "Notes reflect actual call interaction",
+          "Proper tagging (legal, billing, admin, etc.)",
+          "No missing or incomplete entries"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 9. Text Messaging (CTM)",
+    ss: [
+      {
+        l: "Text Messaging (CTM)",
+        i: [
+          "Texts responded to within SLA",
+          "Open-ended closing used in texts",
+          "Professional and clear communication",
+          "Templates used correctly",
+          "No missed or ignored messages",
+          "Follow-up sent when needed"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 10. Surveys & Google Reviews",
+    ss: [
+      {
+        l: "Surveys & Google Reviews",
+        i: [
+          "Client asked for survey at end of call",
+          "Google review requested on positive interactions",
+          "Proper script used",
+          "Consistency across all calls",
+          "Goal: 5 reviews per week"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 11. Call Volume & Productivity",
+    ss: [
+      {
+        l: "Call Volume & Productivity",
+        i: [
+          "Inbound call volume handled appropriately",
+          "Outbound calls completed when required",
+          "Availability time meets target (5–6 hours per shift)",
+          "No idle time while calls are waiting",
+          "Balanced workload across shift"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 12. End of Day (EOD) CTM Compliance",
+    ss: [
+      {
+        l: "End of Day (EOD) CTM Compliance",
+        i: [
+          "No pending missed calls",
+          "No pending text messages",
+          "No pending faxes",
+          "Screenshots posted in Admin Team General (Inbound and outbound calls)",
+          "No pending items",
+          "Daily metrics completed and submitted"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 13. High-Priority Call Handling",
+    ss: [
+      {
+        l: "High-Priority Call Handling",
+        i: [
+          "Federal calls handled with urgency",
+          "Required information collected (Name, Agency, Phone number, Reason for call)",
+          "Proper escalation to Legal channel",
+          "Correct tagging (attorney + paralegal)",
+          "No delays or missed steps"
+        ]
+      }
+    ]
+  },
+  {
+    t: "CTM 14. Post-Meeting Recovery (Critical)",
+    ss: [
+      {
+        l: "Post-Meeting Recovery (Critical)",
+        i: [
+          "Immediately after meetings: Review missed calls",
+          "Return all calls",
+          "Check texts",
+          "Check Greeter & Legal Scheduling channels",
+          "No downtime after meetings",
+          "Team returns to Ready status immediately"
+        ]
+      }
+    ]
+  }
 ];
-
 /* ══════════════════════════════════════════════
    PROGRESS (sections reviewed)
 ══════════════════════════════════════════════ */
